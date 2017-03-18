@@ -91,6 +91,7 @@ public class Framework extends ListActivity {
 
 		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		// 切换成竖屏
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		mInflater = LayoutInflater.from(context);
@@ -125,6 +126,7 @@ public class Framework extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
+		// 判断当前是否有Monkey测试，有的话就退出
 		if (ActivityManager.isUserAMonkey())
 			finish();
 		else {
@@ -134,7 +136,7 @@ public class Framework extends ListActivity {
 			System.out.println("hwPlatform="+hwPlatform);
 			setTitle(getString(R.string.app_name) + " " + hwPlatform);
 			logd(hwPlatform);
-
+			// 查找是否有配置文件
 			/** Get Test Items */
 			FunctionItem functionItems = null;
 			String configFile = null;
@@ -263,6 +265,7 @@ public class Framework extends ListActivity {
 			// put ItemList into MainApp.getInstance().mItemList
 			MainApp.getInstance().mItemList = getItemList(mFunctionItems);
 			if (Values.ENABLE_BACKGROUND_SERVICE)
+				// 启动AutoService服务
 				startService(new Intent(mContext, AutoService.class));
 			else {
 				// To save test time, enable some devices first
@@ -336,11 +339,11 @@ public class Framework extends ListActivity {
 
 		if (!ActivityManager.isUserAMonkey()) {
 			int groupId = 0;
-
+			// 创建子菜单"Clean Test State", 清除测试的信息
 			SubMenu addMenu = menu.addSubMenu(groupId, MENU_CLEAN_STATE,
 					Menu.NONE, R.string.clean_state);
 			addMenu.setIcon(android.R.drawable.ic_menu_revert);
-
+			// 创建子菜单Uninstall, 用于卸载软件
 			SubMenu resetMenu = menu.addSubMenu(groupId, MENU_UNINSTALL,
 					Menu.NONE, R.string.uninstall);
 			resetMenu.setIcon(android.R.drawable.ic_menu_delete);
@@ -351,7 +354,7 @@ public class Framework extends ListActivity {
 
 		return super.onCreateOptionsMenu(menu);
 	}
-
+	// 点击菜单中选项对应的操作
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
