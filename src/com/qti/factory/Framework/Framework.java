@@ -104,10 +104,10 @@ public class Framework extends ListActivity {
 		/** nv factory_data_3 */
 		if (Values.ENABLE_NV) {
 		}
-
+		// 开始写log信息
 		// Write TestLog Start message
 		Utils.writeTestLog("\n=========Start=========", null);
-
+		// 获取系统充电的状态
 		originChargingStatus = getChargingStatus();
 		logd("originChargingStatus=" + originChargingStatus);
 
@@ -148,7 +148,7 @@ public class Framework extends ListActivity {
 					break;
 				}
 			}
-
+			// 解析配置文件，没有在对应目录找到，就使用默认的配置文件
 			XmlPullParser xmlPullParser = null;
 			if (configFile != null) {
 				XmlPullParserFactory xmlPullParserFactory;
@@ -156,13 +156,14 @@ public class Framework extends ListActivity {
 					xmlPullParserFactory = XmlPullParserFactory.newInstance();
 					xmlPullParserFactory.setNamespaceAware(true);
 					xmlPullParser = xmlPullParserFactory.newPullParser();
+					// 打开配置文件,用于读取
 					FileInputStream fileInputStream = new FileInputStream(
 							configFile);
 					xmlPullParser.setInput(fileInputStream, "utf-8");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-
+			// 使用默认的配置文件
 			} else {
 				if (Values.PRODUCT_MSM8916_32.equals(hwPlatform)) {
 					xmlPullParser = getResources().getXml(
@@ -233,7 +234,9 @@ public class Framework extends ListActivity {
 									null, "enable");
 
 							if (enable != null && enable.equals("true")) {
+								// 新建FunctionItem对象
 								functionItems = new FunctionItem();
+								// 根据属性名称获取标签的属性值
 								functionItems.name = xmlPullParser
 										.getAttributeValue(null, "name");
 								System.out.println("functionItems.name= "+functionItems.name);
@@ -241,6 +244,7 @@ public class Framework extends ListActivity {
 										.getAttributeValue(null, "auto");
 								functionItems.packageName = xmlPullParser
 										.getAttributeValue(null, "packageName");
+								// 解析属性parameter并保存到Map中
 								Utils.parseParameter(xmlPullParser
 										.getAttributeValue(null, "parameter"),
 										functionItems.parameter);
@@ -252,6 +256,7 @@ public class Framework extends ListActivity {
 						if (functionItems != null
 								&& tagName.equals("FunctionItem")) {
 							// add
+							// 将packageName当做key，functionItems当做value保存在Map中
 							mFunctionItems.put(functionItems.packageName,
 									functionItems);
 						}
@@ -261,11 +266,12 @@ public class Framework extends ListActivity {
 			} catch (Exception e) {
 				loge(e);
 			}
-
+			// 创建MainApp对象，并将新获得的Map保存到MainApp的mItemList中
 			// put ItemList into MainApp.getInstance().mItemList
 			MainApp.getInstance().mItemList = getItemList(mFunctionItems);
 			if (Values.ENABLE_BACKGROUND_SERVICE)
 				// 启动AutoService服务
+				// 在AutoService中将一些程序和服务先打开，Service先在后台运行。后续测试的时间比比较快
 				startService(new Intent(mContext, AutoService.class));
 			else {
 				// To save test time, enable some devices first
@@ -347,7 +353,7 @@ public class Framework extends ListActivity {
 			SubMenu resetMenu = menu.addSubMenu(groupId, MENU_UNINSTALL,
 					Menu.NONE, R.string.uninstall);
 			resetMenu.setIcon(android.R.drawable.ic_menu_delete);
-
+			// 显示到Actionbar
 			MenuInflater inflater = getMenuInflater();
 			inflater.inflate(R.menu.action_bar, menu);
 		}
@@ -410,8 +416,9 @@ public class Framework extends ListActivity {
 
 		Intent mIntent = new Intent(Intent.ACTION_MAIN, null);
 		mIntent.addCategory("android.category.factory.kit");
-
+		// 获得一个packageManager对象
 		PackageManager packageManager = getPackageManager();
+		// 获取所有可以处理mIntent的Activity
 		/** Retrieve all activities that can be performed for the given intent */
 		List<ResolveInfo> list = packageManager.queryIntentActivities(mIntent,
 				0);
@@ -425,12 +432,15 @@ public class Framework extends ListActivity {
 
 			String className = resolveInfo.activityInfo.name.substring(0,
 					resolveInfo.activityInfo.name.lastIndexOf('.'));
+			// 获取类名
 			System.out.println("className= "+className);
+			// 根据key值，从Map获取FunctionItem对象
 			FunctionItem functionItem = functionItems.get(className);
 			if (functionItem == null) {
 				continue;
 			}
 			Intent intent = new Intent();
+			// 设置Intent意图发送给哪一个activity
 			intent.setClassName(
 					resolveInfo.activityInfo.applicationInfo.packageName,
 					resolveInfo.activityInfo.name);
@@ -439,7 +449,7 @@ public class Framework extends ListActivity {
 
 		return mList;
 	}
-
+	// 将Map添加到List中, 一个Map里面包含了要Intent对象和FunctionTiem对象
 	private void addItem(List<Map> list, Intent intent,
 			FunctionItem functionItem) {
 
@@ -474,7 +484,7 @@ public class Framework extends ListActivity {
 		String name = (String) map.get("title");
 		String result = (resultCode == RESULT_OK ? "OK" : "FAIL");
 		map.put("result", result);
-
+		// 动态刷新ListView
 		mBaseAdapter.notifyDataSetChanged();
 	}
 
@@ -510,6 +520,7 @@ public class Framework extends ListActivity {
 
 			mBaseAdapter.notifyDataSetChanged();
 			Utils.writeTestLog(name, result);
+			// 如果是自动测试
 			if (toStartAutoTest) {
 				mHandler.postDelayed(mRunnable, AUTO_TEST_TIME_INTERVAL);
 				int nexPos = getNextUntestedItem(MainApp.getInstance().mItemList);
@@ -605,6 +616,7 @@ public class Framework extends ListActivity {
 
 			String result = (String) (String) (MainApp.getInstance().mItemList
 					.get(position).get("result"));
+			// 根据result的值设置ListView的图片
 			if (result.equals("NULL") == false)
 				image.setImageBitmap(result.equals("Pass") ? passBitmap
 						: failBitmap);

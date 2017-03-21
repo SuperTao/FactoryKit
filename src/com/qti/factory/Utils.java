@@ -298,7 +298,10 @@ public class Utils {
 
         return SystemProperties.get(Values.PROP_HW_PLATFORM);
     }
-
+    /* 解析FunctionItem对象的参数
+     * 例如：parameter="path=/sys/class/leds/flashlight/brightness"
+     *       parameter="service=com.qti.factory.LightSensor.LightSensorService;ServiceDelay=3000;"
+     */
     public static void parseParameter(final String in, HashMap<String, String> out) {
         String key, value, src;
         if (in == null || out == null)
@@ -307,15 +310,19 @@ public class Utils {
         while (true) {
             if (src == null || src.length() == 0)
                 break;
+            // 找到第一个"="的位置，就是parameter后面的等号。
             int index1 = src.indexOf('=');
+            // 把"parameter“当做是一个key
             if (index1 > 0)
                 key = src.substring(0, index1).trim();// [start,end)
             else
                 break;
+            // 按照”;"将后续的参数进行分割
             int index2 = src.indexOf(';');
             if (index2 > 0) {
                 value = src.substring(index1 + 1, index2).trim();
                 src = src.substring(index2 + 1);
+                // 保存到Map中
                 out.put(key, value);
             } else {
                 value = src.substring(index1 + 1).trim();
